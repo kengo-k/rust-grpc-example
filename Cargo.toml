@@ -1,12 +1,15 @@
 [package]
-name = "rust-simple-template"
+name = "rust-grpc-example"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[[bin]]
-name = "main2"
-path = "src/main2.rs"
-
 [dependencies]
+prost = "0.11.9"
+tokio = { version = "1.31.0", features = ["full"] }
+tonic = "0.9.2"
+tonic-reflection = "0.9.2"
+
+[build-dependencies]
+tonic-build = "0.9.2"
