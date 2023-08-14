@@ -1,40 +1,40 @@
-mod foo;
+mod hello {
+    tonic::include_proto!("hello");
+}
 
-mod inner_mod {
-    pub fn hello() {
-        println!("Hello");
-    }
+use hello::{
+    hello_service_server::{HelloService, HelloServiceServer},
+    HelloReply, HelloRequest,
+};
+use tonic::{Request, Response, Status};
+use tonic_reflection::server::Builder;
 
-    pub mod inner_inner_mod {
-        pub fn world() {
-            println!("World");
-        }
-    }
+#[derive(Default)]
+pub struct MyHelloService {}
 
-    #[derive(Debug)]
-    pub struct Person {
-        pub name: String,
-    }
-
-    impl Person {
-        pub fn new(name: String) -> Self {
-            Self { name }
-        }
-
-        pub fn show(&self) {
-            println!("{:?}", self);
-        }
+#[tonic::async_trait]
+impl HelloService for MyHelloService {
+    async fn say_hello(
+        &self,
+        request: Request<HelloRequest>,
+    ) -> Result<Response<HelloReply>, Status> {
+        let reply = HelloReply {
+            message: format!("Hello, {}!", request.into_inner().name),
+        };
+        Ok(Response::new(reply))
     }
 }
 
-use crate::foo::common::MyEnum;
-use inner_mod::inner_inner_mod::world;
-use inner_mod::Person;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let addr = "127.0.0.1:50051".parse()?;
+    let hello_service = MyHelloService::default();
 
-fn main() {
-    inner_mod::hello();
-    world();
-    let john = Person::new("John".to_string());
-    john.show();
-    foo::bar::util::print_my_enum(&MyEnum::A);
+    tonic::transport::Server::builder()
+        .add_service(HelloServiceServer::new(hello_service))
+        .add_service(Builder::configure().register_encoded_file_descriptor_set(tonic::include_file_descriptor_set!("hello_descriptor")).build().unwrap())
+        .serve(addr)
+        .await?;
+
+    Ok(())
 }
