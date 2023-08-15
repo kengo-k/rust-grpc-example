@@ -32,7 +32,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tonic::transport::Server::builder()
         .add_service(HelloServiceServer::new(hello_service))
-        .add_service(Builder::configure().register_encoded_file_descriptor_set(tonic::include_file_descriptor_set!("hello_descriptor")).build().unwrap())
+        .add_service(
+            Builder::configure()
+                .register_encoded_file_descriptor_set(tonic::include_file_descriptor_set!(
+                    "hello_descriptor"
+                ))
+                .build()
+                .unwrap(),
+        )
         .serve(addr)
         .await?;
 
